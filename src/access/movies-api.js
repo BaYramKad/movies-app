@@ -12,6 +12,10 @@ export class MoviesApi {
     };
 
     const data = await fetch(url, options);
+
+    if (!data.ok) {
+      throw new Error(`Could not fetch ${url}, received ${data.status}`);
+    }
     const res = await data.json();
     return res.results;
   }

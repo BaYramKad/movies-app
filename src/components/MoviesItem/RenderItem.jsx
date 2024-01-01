@@ -3,14 +3,9 @@ import { Typography } from 'antd';
 const { Title, Text, Paragraph } = Typography;
 
 import { EmptyPoster } from './EmptyPoster';
+import { currectStr } from '../../access/short_str';
 
 export const RenderItem = ({ items }) => {
-  function currectStr(string) {
-    const res = string.split(' ');
-    return res.slice(0, 30);
-  }
-
-  if (!items) return '...Loading';
   return (
     <React.Fragment>
       {items.map((item) => {
@@ -27,7 +22,7 @@ export const RenderItem = ({ items }) => {
                 <span>Action</span>
                 <span>Drama</span>
               </div>
-              <Paragraph>{currectStr(item.overview).join(' ')}</Paragraph>
+              <Paragraph>{currectStr(item.overview)}</Paragraph>
             </div>
           </li>
         );
