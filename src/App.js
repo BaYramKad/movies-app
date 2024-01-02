@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import debounce from 'lodash.debounce';
 
 import { MoviesItem } from './components/MoviesItem';
 import { MoviesApi } from './access/movies-api';
@@ -8,27 +9,105 @@ import { Error } from './access/Error';
 const api = new MoviesApi();
 
 export const App = () => {
-  const [state, setState] = useState({
+  const objState = {
     movies: [],
     pending: true,
     rejected: false,
-  });
-  const moviesLoad = (res) => {
-    setState({ movies: res, pending: false });
+    reasonError: [],
   };
-  const catchError = () => {
-    setState({ rejected: true, pending: false });
+  const networkObj = {
+    offline: false,
+    online: true,
   };
+
+  const paginationObj = {
+    page: 1,
+    totalPages: 0,
+    totalResults: 0,
+  };
+  const [state, setState] = useState(objState);
+  const [isNetwork, setIsNetwork] = useState(networkObj);
+  const [query, setQuery] = useState('');
+  const [queryPending, setQueryPending] = useState(false);
+  const [pagination, setPagination] = useState(paginationObj);
+
+  const moviesLoad = ({ results, page, totalPages, totalResults }) => {
+    setQueryPending(false);
+    setPagination({
+      page,
+      totalPages,
+      totalResults,
+    });
+    setState({ movies: results, pending: false });
+  };
+  const catchError = (data) => {
+    setState({ rejected: true, reasonError: data, pending: false });
+  };
+  const updateQuery = (event) => {
+    const value = event.target.value.trim();
+    setQuery(value);
+  };
+
+  const changePage = (page, totalPages) => {
+    console.log('totalPages: ', totalPages);
+    console.log('page: ', page);
+    setPagination({
+      page,
+    });
+  };
+
+  const deboundOnChange = debounce(updateQuery, 500);
+  const handleOffline = () => setIsNetwork({ offline: true, online: false });
+  const handleOnline = () => setIsNetwork({ offline: false, online: true });
+
   useEffect(() => {
-    api.getAllMovies().then(moviesLoad).catch(catchError);
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
   }, []);
 
-  const { pending, rejected } = state;
-  const hasData = !(pending || rejected);
+  const updateStateMovies = (query, currentPage) => {
+    api
+      .getAllMovies(query, currentPage)
+      .then(moviesLoad)
+      .catch((err) => {
+        catchError(err);
+      });
+  };
 
-  const items = hasData ? <MoviesItem movies={state.movies} /> : null;
+  useEffect(() => {
+    updateStateMovies(query, pagination.page);
+  }, []);
+
+  useEffect(() => {
+    updateStateMovies(query, pagination.page);
+  }, [query, pagination.page]);
+
+  const { pending, rejected, reasonError } = state;
+
+  const hasData = !(pending || rejected);
+  const items = hasData ? (
+    <MoviesItem
+      movies={state.movies}
+      inputEvent={(event) => {
+        setQueryPending(true);
+        deboundOnChange(event);
+      }}
+      query={query}
+      queryPending={queryPending}
+      pageInfo={pagination}
+      changePage={changePage}
+    />
+  ) : null;
   const loader = pending ? <Loader size={'large'} /> : null;
-  const error = rejected ? <Error /> : null;
+  const error = rejected ? <Error reasonError={reasonError} network={isNetwork} /> : null;
+
+  if (isNetwork.offline) {
+    return <Error network={isNetwork} />;
+  }
   return (
     <div className="app">
       {loader}

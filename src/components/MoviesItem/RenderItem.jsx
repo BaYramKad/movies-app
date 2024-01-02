@@ -14,9 +14,10 @@ export const RenderItem = ({ items }) => {
         return (
           <li key={item.id} className="movies-item">
             {item.poster_path ? <img src={imgPoster} alt="poster" /> : <EmptyPoster />}
-
             <div className="movies-item__info">
-              <Title level={2}>{item.title}</Title>
+              <Title title={item.title} level={2}>
+                {item.title.length > 13 ? item.title.slice(0, 10) + '...' : item.title}
+              </Title>
               <Text type="secondary">March 5, 2020 </Text>
               <div className="movies-item__genres">
                 <span>Action</span>

@@ -1,10 +1,11 @@
 export function currectStr(string) {
   if (!string) return 'Описание отсутствует';
+
   const arrStr = string.split(' ');
   let countRigth = 0;
   const regExp = /\W/;
   const mapStr = arrStr.map((item) => {
-    item.length < 10 ? (countRigth += 1) : (countRigth -= 1);
+    item.length <= 15 ? (countRigth += 1) : (countRigth -= 1);
     return item;
   });
   const limitSymbols = countRigth > 30 ? 30 : countRigth;
