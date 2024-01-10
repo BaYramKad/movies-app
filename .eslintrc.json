@@ -71,6 +71,7 @@
     "no-extra-boolean-cast": "off",
     "no-invalid-this": "off",
     "no-unused-vars": "off",
-    "camelcase": "off"
+    "camelcase": "off",
+    "no-useless-escape": "off"
   }
 }

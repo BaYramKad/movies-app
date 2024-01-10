@@ -42,6 +42,16 @@
   color: rgba(0, 0, 0, 0.65);
   font-size: 12px;
   background: #fafafa;
+  height: fit-content;
+  width: max-content;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 25px;
+  min-width: max-content;
 }
 
 svg {

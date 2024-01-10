@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from 'react';
+import { Route, Router, Routes } from 'react-router-dom';
 import debounce from 'lodash.debounce';
 
-import { MoviesItem } from './components/MoviesItem';
 import { MoviesApi } from './access/movies-api';
 import { Loader } from './access/loader';
 import { Error } from './access/Error';
+
+import { MoviesItem } from './components/MoviesItem';
+import { Menu } from './components/Menu';
+import { InputComponent } from './components/Input';
+import { RatedMovies } from './components/RatedMovies';
+import { MyContext } from '.';
 
 const api = new MoviesApi();
 
@@ -27,59 +33,81 @@ export const App = () => {
   };
   const [state, setState] = useState(objState);
   const [isNetwork, setIsNetwork] = useState(networkObj);
+  const [pagination, setPagination] = useState(paginationObj);
   const [query, setQuery] = useState('');
   const [queryPending, setQueryPending] = useState(false);
-  const [pagination, setPagination] = useState(paginationObj);
+  const [ratedMovies, setRatedMovies] = useState([]);
+  const [choisedMovies, setChoisedMovies] = useState('search');
+  const [genres, setGenres] = useState([]);
 
   const moviesLoad = ({ results, page, totalPages, totalResults }) => {
     setQueryPending(false);
-    setPagination({
-      page,
-      totalPages,
-      totalResults,
-    });
     setState({ movies: results, pending: false });
+    setPagination((prevPagination) => {
+      return {
+        ...prevPagination,
+        page,
+        totalPages,
+        totalResults,
+      };
+    });
   };
   const catchError = (data) => {
     setState({ rejected: true, reasonError: data, pending: false });
   };
-  const updateQuery = (event) => {
-    const value = event.target.value.trim();
-    setQuery(value);
-  };
+  const updateQuery = (event) => setQuery(event.target.value);
 
-  const changePage = (page, totalPages) => {
-    console.log('totalPages: ', totalPages);
-    console.log('page: ', page);
-    setPagination({
+  const changePage = (page) => {
+    setPagination((prevPagination) => ({
+      ...prevPagination,
       page,
-    });
+    }));
   };
 
   const deboundOnChange = debounce(updateQuery, 500);
   const handleOffline = () => setIsNetwork({ offline: true, online: false });
   const handleOnline = () => setIsNetwork({ offline: false, online: true });
 
+  const updateStateMovies = (query, currentPage) => {
+    api
+      .getAllMovies(query, currentPage)
+      .then((res) => {
+        moviesLoad(res);
+        api.getGenreMovies().then((resGenres) => {
+          setGenres(resGenres);
+        });
+      })
+      .catch((err) => {
+        catchError(err);
+      });
+  };
+
+  const loadRatedMovies = async (guestSessionId) => {
+    const ratedMovies = await api.getRatedMovies(guestSessionId);
+    setRatedMovies(ratedMovies.results);
+  };
+
   useEffect(() => {
+    updateStateMovies(query, pagination.page);
+
+    const loadGuestSessionId = async () => {
+      const guestSessionIdStorage = localStorage.getItem('guestId') || '';
+      if (!guestSessionIdStorage.length) {
+        const { guest_session_id } = await api.getGuestSessionId();
+        localStorage.setItem('guestId', guest_session_id);
+        loadRatedMovies(guest_session_id);
+      } else {
+        loadRatedMovies(guestSessionIdStorage);
+      }
+    };
+
+    loadGuestSessionId();
     window.addEventListener('offline', handleOffline);
     window.addEventListener('online', handleOnline);
     return () => {
       window.removeEventListener('offline', handleOffline);
       window.removeEventListener('online', handleOnline);
     };
-  }, []);
-
-  const updateStateMovies = (query, currentPage) => {
-    api
-      .getAllMovies(query, currentPage)
-      .then(moviesLoad)
-      .catch((err) => {
-        catchError(err);
-      });
-  };
-
-  useEffect(() => {
-    updateStateMovies(query, pagination.page);
   }, []);
 
   useEffect(() => {
@@ -92,10 +120,6 @@ export const App = () => {
   const items = hasData ? (
     <MoviesItem
       movies={state.movies}
-      inputEvent={(event) => {
-        setQueryPending(true);
-        deboundOnChange(event);
-      }}
       query={query}
       queryPending={queryPending}
       pageInfo={pagination}
@@ -104,15 +128,34 @@ export const App = () => {
   ) : null;
   const loader = pending ? <Loader size={'large'} /> : null;
   const error = rejected ? <Error reasonError={reasonError} network={isNetwork} /> : null;
+  const searchPage = (
+    <>
+      <InputComponent
+        inputEvent={(event) => {
+          const value = event.target.value.trim();
+          if (value.length) setQueryPending(true);
+          deboundOnChange(event);
+        }}
+      />
+      {items}
+    </>
+  );
+  const choicedMoviesItems =
+    choisedMovies === 'search' ? searchPage : <RatedMovies ratedItems={ratedMovies} />;
 
   if (isNetwork.offline) {
     return <Error network={isNetwork} />;
   }
+
   return (
-    <div className="app">
-      {loader}
-      {items}
-      {error}
-    </div>
+    <MyContext.Provider value={genres}>
+      <div className="app">
+        <Menu onChoiceMovies={(text) => setChoisedMovies(text)} choisedMovies={choisedMovies} />
+        {choicedMoviesItems}
+
+        {loader}
+        {error}
+      </div>
+    </MyContext.Provider>
   );
 };

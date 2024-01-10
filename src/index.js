@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { createContext } from 'react';
 import { createRoot } from 'react-dom/client';
+import './app-style.css';
 import { App } from './App';
-import './app-style.css'
 
+export const MyContext = createContext([])
 const domNode = document.getElementById('root');
 const root = createRoot(domNode);
 
