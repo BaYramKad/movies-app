@@ -2,7 +2,6 @@ import { Button, Flex } from 'antd';
 import React, { useId } from 'react';
 
 export const Menu = ({ onChoiceMovies, choisedMovies }) => {
-  console.log('choisedMovies: ', choisedMovies);
   const unicId1 = useId();
   const unicId2 = useId();
 

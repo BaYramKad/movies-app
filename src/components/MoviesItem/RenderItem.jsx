@@ -1,12 +1,12 @@
 import React from 'react';
-import { Typography } from 'antd';
+import { Rate, Typography } from 'antd';
 import { format } from 'date-fns';
 
 import { EmptyPoster } from './EmptyPoster';
-import { currectStr } from '../../access/short_str';
+// import { currectStr } from '../../access/short_str';
 const { Title, Text, Paragraph } = Typography;
 
-export const RenderItem = ({ items, genres }) => {
+export const RenderItem = ({ items, genres, postRateMovie }) => {
   const renderGenre = (arrayGenre) => {
     const selectedGenre = genres.filter((genre) => {
       return arrayGenre.includes(genre.id);
@@ -27,7 +27,14 @@ export const RenderItem = ({ items, genres }) => {
               </Title>
               <Text type="secondary">{release_date && format(release_date, 'MMMM dd, yyyy')}</Text>
               <div className="movies-item__genres">{renderGenre(genre_ids)}</div>
-              <Paragraph>{currectStr(overview)}</Paragraph>
+              <Paragraph className="paragraph">{overview}</Paragraph>
+              <Rate
+                className="rate-style"
+                count={10}
+                allowHalf
+                defaultValue={2.5}
+                onChange={(rate) => postRateMovie(id, rate)}
+              />
             </div>
           </li>
         );

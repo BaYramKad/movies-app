@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Route, Router, Routes } from 'react-router-dom';
 import debounce from 'lodash.debounce';
 
 import { MoviesApi } from './access/movies-api';
@@ -83,8 +82,16 @@ export const App = () => {
   };
 
   const loadRatedMovies = async (guestSessionId) => {
-    const ratedMovies = await api.getRatedMovies(guestSessionId);
+    const ratedMovies = await api.getRatedMovies(guestSessionId, pagination.page);
+    console.log('ratedMovies: ', ratedMovies);
     setRatedMovies(ratedMovies.results);
+  };
+
+  const postRateMovie = async (movieId, rate) => {
+    const guestSessionId = localStorage.getItem('guestId');
+
+    const resPostRate = await api.rateTheMovie(movieId, rate, guestSessionId);
+    console.log('resPostRate: ', resPostRate);
   };
 
   useEffect(() => {
@@ -115,7 +122,6 @@ export const App = () => {
   }, [query, pagination.page]);
 
   const { pending, rejected, reasonError } = state;
-
   const hasData = !(pending || rejected);
   const items = hasData ? (
     <MoviesItem
@@ -148,7 +154,7 @@ export const App = () => {
   }
 
   return (
-    <MyContext.Provider value={genres}>
+    <MyContext.Provider value={{ genres, postRateMovie }}>
       <div className="app">
         <Menu onChoiceMovies={(text) => setChoisedMovies(text)} choisedMovies={choisedMovies} />
         {choicedMoviesItems}

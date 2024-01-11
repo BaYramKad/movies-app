@@ -13,8 +13,8 @@ export const MoviesItem = ({ movies, query, queryPending, pageInfo, changePage }
     <>
       <ul className="movies-list">
         <MyContext.Consumer>
-          {(genres) => {
-            return <RenderItem items={movies} genres={genres} />;
+          {({ genres, postRateMovie }) => {
+            return <RenderItem items={movies} genres={genres} postRateMovie={postRateMovie} />;
           }}
         </MyContext.Consumer>
       </ul>

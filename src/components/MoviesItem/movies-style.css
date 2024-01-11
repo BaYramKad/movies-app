@@ -1,5 +1,5 @@
 .movies {
-  max-width: 1010px;
+  max-width: 1087px;
   margin: 0 auto;
   padding: 30px;
   background-color: #fff;
@@ -16,11 +16,10 @@
   box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.15);
   max-height: 281px;
 }
-/* .movies-item * {
-  outline: 1px solid red;
-} */
 
 .movies-item__info {
+  display: flex;
+  flex-direction: column;
   padding: 10px 20px;
 }
 
@@ -31,8 +30,9 @@
 
 .movies-item__genres {
   display: flex;
-  column-gap: 8px;
+  gap: 6px;
   margin: 8px 0 8px 0;
+  flex-wrap: wrap;
 }
 
 .movies-item__genres span {
@@ -46,12 +46,28 @@
   width: max-content;
 }
 
+.paragraph {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
   margin-top: 25px;
   min-width: max-content;
+}
+
+.rate-style {
+  display: flex;
+  /* flex: 0 1 0; */
+  flex-grow: 1;
+  /* flex-grow: 1; */
+  justify-content: center;
+  align-items: flex-end;
+  margin-bottom: 10px;
 }
 
 svg {

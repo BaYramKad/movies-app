@@ -1,11 +1,12 @@
+import { apiKey, defToken } from './apiAuthInfo';
+
 export class MoviesApi {
   baseUrl = 'https://api.themoviedb.org/3';
   optionsGet = {
     method: 'GET',
     headers: {
       accept: 'application/json',
-      Authorization:
-        'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhZTM1OTk0NmE0ZmI3YTkyODY0NTJmYmIyY2EzYjY1YiIsInN1YiI6IjY1OTJkNDczZTY0MGQ2MDE0MGQ1ZjA4MCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Y4kt3GTXbHRlc8nc7VIvBqcb2_4DFy4WEyzsy1OKZEE',
+      Authorization: defToken,
     },
   };
   getAllMovies = async (query, page) => {
@@ -26,14 +27,20 @@ export class MoviesApi {
 
   getGuestSessionId = async () => {
     const url = `${this.baseUrl}/authentication/guest_session/new`;
-
     const data = await fetch(url, this.optionsGet);
-
     return data.json();
   };
 
-  getRatedMovies = async (guestId) => {
-    const url = `${this.baseUrl}/guest_session/${guestId}/rated/movies`;
+  getRatedMovies = async (guestId, page) => {
+    const url = new URL(`${this.baseUrl}/guest_session/${guestId}/rated/movies`);
+    const searchParams = new URLSearchParams({
+      api_key: apiKey,
+      language: 'en-US',
+      page,
+      sort_by: 'created_at.asc',
+    });
+
+    url.search = searchParams.toString();
     const data = await fetch(url, this.optionsGet);
     return await data.json();
   };
@@ -43,5 +50,27 @@ export class MoviesApi {
     const data = await fetch(url, this.optionsGet);
     const { genres } = await data.json();
     return genres;
+  };
+
+  rateTheMovie = async (movieId, rate, guestSessionId) => {
+    const url = new URL(`${this.baseUrl}/movie/${movieId}/rating`);
+    const searchParams = new URLSearchParams({
+      api_key: apiKey,
+      guest_session_id: guestSessionId,
+    });
+    const options = {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'Content-Type': 'application/json;charset=utf-8',
+        Authorization: defToken,
+      },
+      body: JSON.stringify({ value: rate }),
+    };
+    url.search = searchParams.toString();
+
+    const data = await fetch(url.href, options);
+    const result = await data.json();
+    return result;
   };
 }
