@@ -66,7 +66,6 @@
   justify-content: center;
   align-items: center;
   margin-top: 25px;
-  min-width: max-content;
 }
 
 .rate-style {
@@ -94,8 +93,13 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   width: 235px;
+  padding-top: 10px;
 }
 
+.input-style {
+  margin: 0 10px 30px 10px;
+  max-width: calc(100% - 30px);
+}
 @media screen and (max-width: 500px) {
   #item-title {
     width: 150px;
@@ -124,6 +128,9 @@
   svg {
     max-width: 100px;
   }
+  .paragraph-block {
+    padding: 0 10px;
+  }
 }
 
 @media screen and (max-width: 320px) {
@@ -148,6 +155,6 @@
     max-width: 60px;
   }
   .movies {
-    padding: 5px;
+    padding: 9px;
   }
 }
