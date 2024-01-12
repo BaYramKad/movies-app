@@ -1,9 +1,8 @@
 import React from 'react';
 import { Rate, Typography } from 'antd';
 import { format } from 'date-fns';
-
 import { EmptyPoster } from './EmptyPoster';
-// import { currectStr } from '../../access/short_str';
+import { getvoteOverage } from '../../access/getVoteOverage';
 const { Title, Text, Paragraph } = Typography;
 
 export const RenderItem = ({ items, genres, postRateMovie }) => {
@@ -13,26 +12,43 @@ export const RenderItem = ({ items, genres, postRateMovie }) => {
     });
     return selectedGenre.map((genre) => <span key={genre.id}>{genre.name}</span>);
   };
+
+  const storageRatedMovies = JSON.parse(localStorage.getItem('ratedMovies')) || [];
+
   return (
     <React.Fragment>
       {items.map((item) => {
-        const { id, poster_path, title, release_date, overview, genre_ids } = item;
+        const { id, overview, poster_path, release_date, title, genre_ids, vote_average } = item;
+        const findIdStorage = storageRatedMovies.find((stItem) => stItem.id === id);
+        const rate = findIdStorage ? findIdStorage.vote_average : vote_average;
         const imgPoster = `https://image.tmdb.org/t/p/original/${poster_path}`;
+        const rateNumber = !findIdStorage ? 0 : rate.toFixed(1);
         return (
           <li key={id} className="movies-item">
-            {poster_path ? <img src={imgPoster} alt="poster" /> : <EmptyPoster />}
-            <div className="movies-item__info">
-              <Title title={title} level={2}>
-                {title.length > 13 ? title.slice(0, 10) + '...' : title}
+            <div>{poster_path ? <img src={imgPoster} alt="poster" /> : <EmptyPoster />}</div>
+
+            <div>
+              <Title id="item-title" title={title} level={2}>
+                {title}
               </Title>
+              <div
+                className="item-style-overage"
+                style={{ border: `${getvoteOverage(rateNumber)}` }}>
+                {rateNumber}
+              </div>
               <Text type="secondary">{release_date && format(release_date, 'MMMM dd, yyyy')}</Text>
               <div className="movies-item__genres">{renderGenre(genre_ids)}</div>
-              <Paragraph className="paragraph">{overview}</Paragraph>
+            </div>
+
+            <div className="paragraph-block">
+              <Paragraph className="paragraph">
+                {overview.length ? overview : 'There is no description of the film'}
+              </Paragraph>
               <Rate
                 className="rate-style"
                 count={10}
                 allowHalf
-                defaultValue={2.5}
+                defaultValue={rateNumber}
                 onChange={(rate) => postRateMovie(id, rate)}
               />
             </div>

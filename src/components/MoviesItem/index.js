@@ -1,6 +1,6 @@
 import React from 'react';
 
-import './movies-style.css';
+import '../movies-style.css';
 import { RenderItem } from './RenderItem';
 import { Pagination } from 'antd';
 import { Loader } from '../../access/loader';

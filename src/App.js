@@ -35,7 +35,6 @@ export const App = () => {
   const [pagination, setPagination] = useState(paginationObj);
   const [query, setQuery] = useState('');
   const [queryPending, setQueryPending] = useState(false);
-  const [ratedMovies, setRatedMovies] = useState([]);
   const [choisedMovies, setChoisedMovies] = useState('search');
   const [genres, setGenres] = useState([]);
 
@@ -81,34 +80,23 @@ export const App = () => {
       });
   };
 
-  const loadRatedMovies = async (guestSessionId) => {
-    const ratedMovies = await api.getRatedMovies(guestSessionId, pagination.page);
-    console.log('ratedMovies: ', ratedMovies);
-    setRatedMovies(ratedMovies.results);
-  };
-
   const postRateMovie = async (movieId, rate) => {
-    const guestSessionId = localStorage.getItem('guestId');
+    setState((prev) => ({ ...prev, rejected: false }));
 
-    const resPostRate = await api.rateTheMovie(movieId, rate, guestSessionId);
-    console.log('resPostRate: ', resPostRate);
+    const storageRatedMovies = JSON.parse(localStorage.getItem('ratedMovies')) || [];
+    const ratedMovie = state.movies.find((item) => item.id === movieId);
+    const chengeTheRate = {
+      ...ratedMovie,
+      vote_average: rate,
+    };
+
+    const filteredRatedMovies = storageRatedMovies.filter((item) => item.id !== movieId);
+    localStorage.setItem('ratedMovies', JSON.stringify([chengeTheRate, ...filteredRatedMovies]));
   };
 
   useEffect(() => {
     updateStateMovies(query, pagination.page);
 
-    const loadGuestSessionId = async () => {
-      const guestSessionIdStorage = localStorage.getItem('guestId') || '';
-      if (!guestSessionIdStorage.length) {
-        const { guest_session_id } = await api.getGuestSessionId();
-        localStorage.setItem('guestId', guest_session_id);
-        loadRatedMovies(guest_session_id);
-      } else {
-        loadRatedMovies(guestSessionIdStorage);
-      }
-    };
-
-    loadGuestSessionId();
     window.addEventListener('offline', handleOffline);
     window.addEventListener('online', handleOnline);
     return () => {
@@ -146,8 +134,13 @@ export const App = () => {
       {items}
     </>
   );
+
   const choicedMoviesItems =
-    choisedMovies === 'search' ? searchPage : <RatedMovies ratedItems={ratedMovies} />;
+    choisedMovies === 'search' ? (
+      searchPage
+    ) : (
+      <RatedMovies genres={genres} postRateMovie={postRateMovie} />
+    );
 
   if (isNetwork.offline) {
     return <Error network={isNetwork} />;
