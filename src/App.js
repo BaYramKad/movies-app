@@ -20,10 +20,6 @@ export const App = () => {
     rejected: false,
     reasonError: [],
   };
-  const networkObj = {
-    offline: false,
-    online: true,
-  };
 
   const paginationObj = {
     page: 1,
@@ -31,7 +27,7 @@ export const App = () => {
     totalResults: 0,
   };
   const [state, setState] = useState(objState);
-  const [isNetwork, setIsNetwork] = useState(networkObj);
+  const [isOnline, setIsOnline] = useState(false);
   const [pagination, setPagination] = useState(paginationObj);
   const [query, setQuery] = useState('');
   const [queryPending, setQueryPending] = useState(false);
@@ -50,8 +46,8 @@ export const App = () => {
       };
     });
   };
-  const catchError = (data) => {
-    setState({ rejected: true, reasonError: data, pending: false });
+  const catchError = (resError) => {
+    setState({ rejected: true, reasonError: resError, pending: false });
   };
   const updateQuery = (event) => setQuery(event.target.value);
 
@@ -63,8 +59,6 @@ export const App = () => {
   };
 
   const deboundOnChange = debounce(updateQuery, 500);
-  const handleOffline = () => setIsNetwork({ offline: true, online: false });
-  const handleOnline = () => setIsNetwork({ offline: false, online: true });
 
   const updateStateMovies = (query, currentPage) => {
     api
@@ -93,14 +87,21 @@ export const App = () => {
     const filteredRatedMovies = storageRatedMovies.filter((item) => item.id !== movieId);
     localStorage.setItem('ratedMovies', JSON.stringify([chengeTheRate, ...filteredRatedMovies]));
   };
+  const handleOnline = (event) => {
+    if (event.type === 'offline') {
+      setIsOnline(true);
+    } else if (event.type === 'online') {
+      setIsOnline(false);
+    }
+  };
 
   useEffect(() => {
     updateStateMovies(query, pagination.page);
 
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener('offline', handleOnline);
     window.addEventListener('online', handleOnline);
     return () => {
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('offline', handleOnline);
       window.removeEventListener('online', handleOnline);
     };
   }, []);
@@ -120,8 +121,9 @@ export const App = () => {
       changePage={changePage}
     />
   ) : null;
+
   const loader = pending ? <Loader size={'large'} /> : null;
-  const error = rejected ? <Error reasonError={reasonError} network={isNetwork} /> : null;
+  const error = rejected ? <Error reasonError={reasonError} network={isOnline} /> : null;
   const searchPage = (
     <>
       <InputComponent
@@ -142,8 +144,8 @@ export const App = () => {
       <RatedMovies genres={genres} postRateMovie={postRateMovie} />
     );
 
-  if (isNetwork.offline) {
-    return <Error network={isNetwork} />;
+  if (isOnline) {
+    return <Error network={isOnline} />;
   }
 
   return (
@@ -151,7 +153,6 @@ export const App = () => {
       <div className="app">
         <Menu onChoiceMovies={(text) => setChoisedMovies(text)} choisedMovies={choisedMovies} />
         {choicedMoviesItems}
-
         {loader}
         {error}
       </div>

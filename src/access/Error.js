@@ -2,7 +2,7 @@ import { Alert } from 'antd';
 import React from 'react';
 
 export const Error = ({ reasonError, network }) => {
-  if (network.offline) {
+  if (network) {
     return (
       <Alert
         message={`Error: No internet connection`}
