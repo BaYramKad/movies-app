@@ -34,7 +34,7 @@ export class MoviesApi {
   };
 
   getRatedMovies = async (guestSessionId, page) => {
-    // the api does not work
+    // Возврощает пустой массыв, даже после оценки
     const url = new URL(`${this.baseUrl}/guest_session/${guestSessionId}/rated/movies`);
     const searchParams = new URLSearchParams({
       sort_by: 'created_at.asc',
@@ -45,7 +45,6 @@ export class MoviesApi {
     url.search = searchParams.toString();
     const data = await fetch(url, this.optionsGet);
     const result = await data.json();
-    // console.log('result: ', result);
     return result;
   };
 
@@ -74,6 +73,7 @@ export class MoviesApi {
     url.search = searchParams.toString();
     const data = await fetch(url, options);
     const result = await data.json();
+    console.log('result: ', result);
     return result;
   };
 }

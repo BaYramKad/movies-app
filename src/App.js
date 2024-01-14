@@ -33,6 +33,7 @@ export const App = () => {
   const [queryPending, setQueryPending] = useState(false);
   const [choisedMovies, setChoisedMovies] = useState('search');
   const [genres, setGenres] = useState([]);
+  const [sessionId, setSessionId] = useState([]);
 
   const moviesLoad = ({ results, page, totalPages, totalResults }) => {
     setQueryPending(false);
@@ -86,6 +87,10 @@ export const App = () => {
 
     const filteredRatedMovies = storageRatedMovies.filter((item) => item.id !== movieId);
     localStorage.setItem('ratedMovies', JSON.stringify([chengeTheRate, ...filteredRatedMovies]));
+    // api.rateTheMovie(movieId, rate, sessionId).then((res) => {
+    //   console.log('res: ', res);
+    // Не возврощается объект
+    // });
   };
   const handleOnline = (event) => {
     if (event.type === 'offline') {
@@ -97,7 +102,9 @@ export const App = () => {
 
   useEffect(() => {
     updateStateMovies(query, pagination.page);
-
+    api.getGuestSessionId().then((res) => {
+      setSessionId(res.guest_session_id);
+    });
     window.addEventListener('offline', handleOnline);
     window.addEventListener('online', handleOnline);
     return () => {
